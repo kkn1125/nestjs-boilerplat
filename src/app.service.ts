@@ -5,7 +5,9 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   constructor(private prisma: DatabasesService) {}
 
-  getHello(): string {
+  async getHello(): Promise<string> {
+    const users = await this.prisma.user.findMany();
+    console.log(users);
     return 'Hello World!';
   }
 }

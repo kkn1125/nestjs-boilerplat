@@ -1,13 +1,13 @@
-import dayjs from 'dayjs';
-import { capitalize } from './capitalize';
+import { TIMESTAMP_FORMAT } from '@common/variable';
+import * as dayjs from 'dayjs';
 
-export class Logger {
-  private context: string = 'system';
+export class Logger<T extends object> {
+  private context: string = 'System';
   private readonly levels = ['log', 'info', 'debug', 'warn', 'error'] as const;
   private readonly icons = ['🪵', '✨', '🐛', '⚠️', '🔥'] as const;
 
   private get timestamp() {
-    return dayjs().format('H:mm:ss.SSS');
+    return dayjs().format(TIMESTAMP_FORMAT);
   }
 
   log: Console['log'];
@@ -16,15 +16,15 @@ export class Logger {
   warn: Console['warn'];
   error: Console['error'];
 
-  constructor(context?: string) {
-    if (context) {
-      this.context = context;
-    }
+  constructor(context?: string | T) {
+    this.update(context);
   }
 
-  update(context?: string) {
-    if (context) {
+  update(context?: string | T) {
+    if (typeof context === 'string') {
       this.context = context;
+    } else if (typeof context === 'object') {
+      this.context = context.constructor.name;
     }
     for (const index in this.levels) {
       const level = this.levels[index];
@@ -34,7 +34,7 @@ export class Logger {
           const timestamp = this.timestamp;
           return console.log.bind(
             this,
-            `${icon} [${level.toUpperCase()}] [${capitalize(context)}] ${timestamp}`,
+            `${icon} [${level.toUpperCase()}] [${this.context}] ${timestamp}`,
           );
         },
       });

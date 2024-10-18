@@ -17,7 +17,7 @@ enum Role {
   USER  @map("user")
   ADMIN @map("admin")
 
-  @@map("_Role")
+  @@map("Role")
 }
 
 model User {

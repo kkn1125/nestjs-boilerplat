@@ -5,8 +5,9 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ResponseEntity } from './response.entity';
+import { ErrorResponseEntity } from './error.response.entity';
 import { ResponseProtocol } from '@common/protocol';
+import { Logger } from '@util/Logger';
 
 @Catch(HttpException)
 export class ResponseExceptionFilter implements ExceptionFilter {
@@ -15,15 +16,21 @@ export class ResponseExceptionFilter implements ExceptionFilter {
     const req = ctx.getRequest<Request>();
     const res = ctx.getResponse<Response>();
     const statusCode = exception.getStatus();
+    const method = req.method.toUpperCase();
+    const originalUrl = req.originalUrl;
+    const logger = new Logger(this);
 
-    console.log(exception.message);
+    const errorResponse = new ErrorResponseEntity({
+      statusCode,
+      protocol: ResponseProtocol[exception.message],
+      path: req.path,
+    });
 
-    res.status(statusCode).json(
-      new ResponseEntity({
-        statusCode,
-        protocol: ResponseProtocol[exception.message],
-        path: req.path,
-      }),
+    logger.log(
+      `Response ${statusCode} [${method}] ${originalUrl} <---`,
+      errorResponse,
     );
+
+    res.status(statusCode).json(errorResponse);
   }
 }

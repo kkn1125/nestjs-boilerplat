@@ -1,7 +1,9 @@
 import { TIMESTAMP_FORMAT } from '@common/variable';
 import * as dayjs from 'dayjs';
 
-export class Logger<T extends object> {
+export class Logger<
+  T extends object | (new (...args: any[]) => object) = object,
+> {
   private context: string = 'System';
   private readonly levels = ['log', 'info', 'debug', 'warn', 'error'] as const;
   private readonly icons = ['🪵', '✨', '🐛', '⚠️', '🔥'] as const;

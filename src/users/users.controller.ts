@@ -41,7 +41,7 @@ export class UsersController {
     );
   }
 
-  @Patch(':id')
+  @Patch(':id/password')
   updatePassword(@Param('id') id: string, @Body() password: string) {
     return this.usersService.updatePassword(+id, password);
   }

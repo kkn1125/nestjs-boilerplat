@@ -20,10 +20,25 @@ export class ResponseExceptionFilter implements ExceptionFilter {
     const originalUrl = req.originalUrl;
     const logger = new Logger(this);
 
-    const errorResponse = new ErrorResponseEntity({
+    logger.log(ResponseProtocol, exception.message, {
       statusCode,
       protocol: ResponseProtocol[exception.message],
       path: req.path,
+      method,
+    });
+
+    const protocol =
+      exception.message in ResponseProtocol
+        ? ResponseProtocol[exception.message]
+        : ResponseProtocol.UnknownError;
+    const detail = exception.message || exception.cause;
+
+    const errorResponse = new ErrorResponseEntity({
+      statusCode,
+      protocol,
+      path: req.path,
+      method,
+      detail,
     });
 
     logger.log(

@@ -52,14 +52,23 @@ export class UsersService {
     return userWithoutPassword;
   }
 
-  updateWithoutPassword(
+  async updateWithoutPassword(
     id: number,
     updateUserWithoutPasswordDto: UpdateUserWithoutPasswordDto,
   ) {
-    return this.prisma.user.update({
+    try {
+      await this.prisma.user.findUniqueOrThrow({ where: { id } });
+    } catch {
+      throw new CustomException('NotFoundUserError', HttpStatus.NOT_FOUND);
+    }
+
+    const user = await this.prisma.user.update({
       where: { id },
       data: updateUserWithoutPasswordDto,
     });
+
+    const { password: _password, ...result } = user;
+    return result;
   }
 
   updatePassword(id: number, password: string) {

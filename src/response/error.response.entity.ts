@@ -6,6 +6,8 @@ interface ErrorResponseEntityProps {
   statusCode: number;
   protocol: (typeof ResponseProtocol)[keyof typeof ResponseProtocol];
   path: string;
+  method: string;
+  detail: string | unknown;
 }
 export class ErrorResponseEntity {
   ok: boolean;
@@ -13,15 +15,25 @@ export class ErrorResponseEntity {
   errorCode: number;
   errorMessage: string;
   path: string;
+  method: string;
+  detail: string | unknown;
   timestamp: string;
 
-  constructor({ statusCode, protocol, path }: ErrorResponseEntityProps) {
+  constructor({
+    statusCode,
+    protocol,
+    path,
+    method,
+    detail,
+  }: ErrorResponseEntityProps) {
     const { code, message } = protocol;
     this.ok = [200, 201].includes(code);
     this.statusCode = statusCode;
     this.errorCode = code;
     this.errorMessage = message;
+    this.method = method;
     this.path = path;
+    this.detail = detail;
     this.timestamp = dayjs().format(TIMESTAMP_FORMAT);
   }
 }

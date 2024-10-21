@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabasesModule } from './databases/databases.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { UsersModule } from './users/users.module';
+import { AuthenticationModule } from './authentication/authentication.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UsersModule } from './users/users.module';
     }),
     DatabasesModule,
     UsersModule,
+    AuthenticationModule,
   ],
   controllers: [],
   providers: [],

@@ -5,16 +5,24 @@ import { Logger } from '@util/Logger';
 import { AppModule } from './app.module';
 import { ResponseInterceptor } from './response/response.interceptor';
 import { ResponseExceptionFilter } from './response/response.filter';
-
+import * as cookieParser from 'cookie-parser';
+import { JwtInterceptor } from './middleware/jwt.interceptor';
+import { JwtService } from '@nestjs/jwt';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger();
   const configService = app.get(ConfigService);
   const common = configService.get<ConfigType<typeof commonConf>>('common');
 
+  app.use(cookieParser());
+
   app.setGlobalPrefix('api');
 
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  // jwt interceptor가 먼저 적용되려면?
+  app.useGlobalInterceptors(
+    new JwtInterceptor(new JwtService(), configService),
+    new ResponseInterceptor(),
+  );
   app.useGlobalFilters(new ResponseExceptionFilter());
 
   // app.enableVersioning({

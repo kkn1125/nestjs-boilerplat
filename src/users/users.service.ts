@@ -3,7 +3,9 @@ import { DatabasesService } from '@databases/databases.service';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PasswordEncoder } from '@util/PasswordEncoder';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserWithoutPasswordDto } from './dto/update-user-without-password.dto';
+import { UpdateUserInfoDto } from './dto/update-user-info.dto';
+import { User } from '@prisma/client';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -42,6 +44,17 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     // create 메서드를 수정하여 패스워드를 인코딩합니다.
+
+    const existsUser = await this.prisma.user.findUnique({
+      where: { email: createUserDto.email },
+    });
+    if (existsUser) {
+      throw new CustomException(
+        'AlreadyExistsUserError',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const encodedPassword = PasswordEncoder.encode(createUserDto.password);
     const userData = { ...createUserDto, password: encodedPassword };
 
@@ -52,10 +65,7 @@ export class UsersService {
     return userWithoutPassword;
   }
 
-  async updateWithoutPassword(
-    id: number,
-    updateUserWithoutPasswordDto: UpdateUserWithoutPasswordDto,
-  ) {
+  async updateUserInfo(id: number, updateUserInfoDto: UpdateUserInfoDto) {
     try {
       await this.prisma.user.findUniqueOrThrow({ where: { id } });
     } catch {
@@ -64,19 +74,47 @@ export class UsersService {
 
     const user = await this.prisma.user.update({
       where: { id },
-      data: updateUserWithoutPasswordDto,
+      data: updateUserInfoDto,
     });
 
     const { password: _password, ...result } = user;
     return result;
   }
 
-  updatePassword(id: number, password: string) {
-    const encodedPassword = PasswordEncoder.encode(password);
-    return this.prisma.user.update({
+  async updatePassword(
+    id: number,
+    updateUserPasswordDto: UpdateUserPasswordDto,
+  ) {
+    let user: User | null;
+    try {
+      user = await this.prisma.user.findUniqueOrThrow({ where: { id } });
+    } catch (e) {
+      console.log(e);
+      throw new CustomException('NotFoundUserError', HttpStatus.NOT_FOUND);
+    }
+
+    const encodedPassword = PasswordEncoder.encode(
+      updateUserPasswordDto.password,
+    );
+
+    if (user.password !== encodedPassword) {
+      throw new CustomException(
+        'PasswordNotMatchError',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const encodedChangePassword = PasswordEncoder.encode(
+      updateUserPasswordDto.changePassword,
+    );
+
+    const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { password: encodedPassword },
+      data: { password: encodedChangePassword },
     });
+
+    const { password: _password, ...result } = updatedUser;
+    return result;
   }
 
   remove(id: number) {

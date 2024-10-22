@@ -8,6 +8,6 @@ class CreateUserWithoutPasswordDto implements ExcludeId<User> {
   role: Role;
 }
 
-export class UpdateUserWithoutPasswordDto extends PartialType(
+export class UpdateUserInfoDto extends PartialType(
   CreateUserWithoutPasswordDto,
 ) {}

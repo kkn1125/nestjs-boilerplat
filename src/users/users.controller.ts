@@ -6,15 +6,21 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserWithoutPasswordDto } from './dto/update-user-without-password.dto';
+import { UpdateUserInfoDto } from './dto/update-user-info.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
+import { UpdateDataValidatePipe } from './pipe/update-data-validate.pipe';
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from '@/guard/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.usersService.findAll();
@@ -26,24 +32,26 @@ export class UsersController {
   }
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  create(@Body('createUserDto') createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
-  @Patch(':id')
-  updateWithoutPassword(
+  @UsePipes(UpdateDataValidatePipe)
+  @Patch(':id/info')
+  updateUserInfo(
     @Param('id') id: string,
-    @Body() updateUserWithoutPasswordDto: UpdateUserWithoutPasswordDto,
+    @Body() updateUserInfoDto: UpdateUserInfoDto,
   ) {
-    return this.usersService.updateWithoutPassword(
-      +id,
-      updateUserWithoutPasswordDto,
-    );
+    return this.usersService.updateUserInfo(+id, updateUserInfoDto);
   }
 
+  @UsePipes(UpdateDataValidatePipe)
   @Patch(':id/password')
-  updatePassword(@Param('id') id: string, @Body() password: string) {
-    return this.usersService.updatePassword(+id, password);
+  updatePassword(
+    @Param('id') id: string,
+    @Body() updateUserPasswordDto: UpdateUserPasswordDto,
+  ) {
+    return this.usersService.updatePassword(+id, updateUserPasswordDto);
   }
 
   @Delete(':id')

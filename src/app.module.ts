@@ -6,16 +6,35 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigType, ConfigService } from '@nestjs/config';
 import { DatabasesModule } from './databases/databases.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { UsersModule } from './users/users.module';
 import { AuthenticationModule } from './authentication/authentication.module';
+import { RedisModule } from '@liaoliaots/nestjs-redis';
+import redisConf from '@config/redisConf';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [commonConf, databaseConf],
+      load: [commonConf, databaseConf, redisConf],
+      isGlobal: true,
+    }),
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        const redisConfig =
+          configService.get<ConfigType<typeof redisConf>>('redis');
+        return {
+          readyLog: true,
+          config: {
+            host: redisConfig.HOST,
+            port: redisConfig.PORT,
+            password: redisConfig.PASSWORD,
+          },
+        };
+      },
+      inject: [ConfigService],
     }),
     DatabasesModule,
     UsersModule,

@@ -11,11 +11,13 @@ export class LoggerMiddleware implements NestMiddleware {
     const queries = req.query;
     const params = req.params;
     const body = req.body;
+    const headers = req.headers;
 
     logger.log(`Request [${method}] ${originalUrl} --->`);
     logger.log('> queries:', queries);
     logger.log('> params:', params);
     logger.log('> body:', body);
+    logger.log('> headers:', headers);
     next();
   }
 }

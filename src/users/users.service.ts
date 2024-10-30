@@ -24,6 +24,23 @@ export class UsersService {
     });
   }
 
+  findAllCondition(query: Record<string, string>) {
+    const where = Object.fromEntries(
+      Object.entries(query).map(([key, value]) => {
+        console.log('key:', key, 'value:', value);
+        return [
+          key,
+          key === 'role'
+            ? { equals: value.toUpperCase() }
+            : { contains: value },
+        ];
+      }),
+    );
+    return this.prisma.user.findMany({
+      where: where,
+    });
+  }
+
   async findOne(id: number) {
     try {
       return await this.prisma.user.findUniqueOrThrow({

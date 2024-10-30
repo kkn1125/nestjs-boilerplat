@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -26,13 +27,20 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('condition')
+  findCondition(@Query() query: Record<string, string>) {
+    console.log('query:', query);
+    return this.usersService.findAllCondition(query);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
 
   @Post()
-  create(@Body('createUserDto') createUserDto: CreateUserDto) {
+  create(@Body() createUserDto: CreateUserDto) {
+    console.log('createUserDto:', createUserDto);
     return this.usersService.create(createUserDto);
   }
 

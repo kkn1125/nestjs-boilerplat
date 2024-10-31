@@ -20,14 +20,19 @@ export class ResponseInterceptor implements NestInterceptor {
     const method = req.method.toUpperCase();
     const originalUrl = req.originalUrl;
 
-    return next.handle().pipe(
-      map((data) => {
-        logger.log(
-          `Response ${statusCode} [${method}] ${originalUrl} <---`,
-          data,
-        );
-        return new OkResponse(statusCode, data);
-      }),
-    );
+    if (req.path.startsWith('/api')) {
+      return next.handle().pipe(
+        map((data) => {
+          logger.log(
+            `Response ${statusCode} [${method}] ${originalUrl} <---`,
+            data,
+          );
+          return new OkResponse(statusCode, data);
+        }),
+      );
+    } else {
+      logger.log(`Response ${statusCode} [${method}] ${originalUrl} <--- ejs`);
+      return next.handle();
+    }
   }
 }

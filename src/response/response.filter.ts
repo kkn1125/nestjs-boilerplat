@@ -4,7 +4,7 @@ import {
   ExceptionFilter,
   HttpException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { ErrorResponseEntity } from './error.response.entity';
 import { ResponseProtocol } from '@common/protocol';
 import { Logger } from '@util/Logger';
@@ -33,19 +33,27 @@ export class ResponseExceptionFilter implements ExceptionFilter {
         : ResponseProtocol.UnknownError;
     const detail = exception.cause || exception.message;
 
-    const errorResponse = new ErrorResponseEntity({
-      statusCode,
-      protocol,
-      path: req.path,
-      method,
-      detail,
-    });
+    if (req.path.startsWith('/api')) {
+      const errorResponse = new ErrorResponseEntity({
+        statusCode,
+        protocol,
+        path: req.path,
+        method,
+        detail,
+      });
 
-    logger.log(
-      `Response ${statusCode} [${method}] ${originalUrl} <---`,
-      errorResponse,
-    );
+      logger.log(
+        `Response ${statusCode} [${method}] ${originalUrl} <---`,
+        errorResponse,
+      );
 
-    res.status(statusCode).json(errorResponse);
+      res.status(statusCode).json(errorResponse);
+    } else {
+      console.log(exception);
+      res.status(statusCode).render('pages/error', {
+        statusCode,
+        error: exception.message,
+      });
+    }
   }
 }

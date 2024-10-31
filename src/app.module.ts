@@ -1,18 +1,23 @@
 import commonConf from '@config/commonConf';
 import databaseConf from '@config/databaseConf';
+import redisConf from '@config/redisConf';
+import { RedisModule } from '@liaoliaots/nestjs-redis';
 import {
   MiddlewareConsumer,
   Module,
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { ConfigModule, ConfigType, ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService, ConfigType } from '@nestjs/config';
+import { AppController } from './app.controller';
+import { AuthenticationModule } from './authentication/authentication.module';
 import { DatabasesModule } from './databases/databases.module';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { UsersModule } from './users/users.module';
-import { AuthenticationModule } from './authentication/authentication.module';
-import { RedisModule } from '@liaoliaots/nestjs-redis';
-import redisConf from '@config/redisConf';
+import { ViewsModule } from './views/views.module';
+import { RouterModule } from '@nestjs/core';
+import * as path from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
@@ -39,15 +44,16 @@ import redisConf from '@config/redisConf';
     DatabasesModule,
     UsersModule,
     AuthenticationModule,
+    ViewsModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(LoggerMiddleware)
-      .exclude('/health') // 헬스체커만 제외
+      // .exclude('/api/health') // 헬스체커만 제외
       .forRoutes({ path: '*', method: RequestMethod.ALL }); // 모든 경로
   }
 }
